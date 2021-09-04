@@ -1,23 +1,29 @@
-import json
-import requests
+import concurrent.futures
+import time
 
-stillHaveData = True
+import rx
+from rx import operators as ops
 
-# {"currentPage":2,"stillHaveData":true}
+PACK_SIZE = 100
 
-while stillHaveData:
-    response = requests.get("http://127.0.0.1:5001/extract")
-    json_content = json.loads(response.content)
 
-    stillHaveData = json_content["stillHaveData"]
+def extract(page):
+    # TODO executar o extract passando a pagina(tm)
+    print('extraindo pagina %d' % page)
+    time.sleep(1)
+    return page
 
-    if stillHaveData:
-        currentPage = json_content["currentPage"]
-    else:
-        currentPage = json_content["lastPage"]
 
-    print("".join(["Page ", str(currentPage),
-          ' was persisted successfuly, but we still have data to persist']))
+def output(result):
+    print('page %d extraida' % result)
 
-print(
-    "".join(["All data has been persisted. The last page is", str(currentPage)]))
+
+current_page = 1
+
+with concurrent.futures.ProcessPoolExecutor(10) as executor:
+
+    pages = list(range(current_page, current_page + PACK_SIZE))
+
+    rx.from_(pages).pipe(
+        ops.flat_map(lambda s: executor.submit(extract, s))
+    ).subscribe(output)
