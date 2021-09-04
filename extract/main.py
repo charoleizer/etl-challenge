@@ -1,8 +1,9 @@
-from flask import Flask
+from flask import Flask, request
 from pymongo import MongoClient
 import requests
 import pymongo
 import json
+
 
 app = Flask(__name__)
 
@@ -23,27 +24,22 @@ def persist(content):
     client = pymongo.MongoClient(CONNECTION_STRING)
     dbname = client['extract']
     collection_name = dbname["extracts"]
-    collection_name.insert_many([content])
 
-
-def getLastPagePersisted():
-    client = pymongo.MongoClient(CONNECTION_STRING)
-    dbname = client['extract']
-    collection_name = dbname["extracts"]
-
-    # Get Page value from collection, sorted by page desc
-    data = collection_name.find_one(sort=[("page", pymongo.DESCENDING)])
-
-    # Check if data isnt NoneType (NoneType means that are no valid data)
-    if data:
-        return data['page']
-    else:
-        return 0
+    collection_name.update_many({'page': content["page"]}, {
+                                "$set": {'numbers': content["numbers"]}}, upsert=True)
 
 
 @app.route("/extract")
 def extract():
-    current_page = getLastPagePersisted() + 1
+
+    current_page = request.args.get('page')
+
+    if current_page is None:
+        return {'message': 'Cannot find page. Please try to use ?page='}
+
+    if not current_page.isdigit:
+        return {'message': 'Please try to use an integer value for page'}
+
     response = requests.get("".join([API_BASE_URL, str(current_page)]))
 
     if response.status_code == 200:
