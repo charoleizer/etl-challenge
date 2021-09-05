@@ -25,7 +25,7 @@ def persist(content):
     dbname = client['extract']
     collection_name = dbname["extracts"]
 
-    collection_name.update_many({'page': content["page"]}, {
+    collection_name.update_many({'page': int(content["page"])}, {
                                 "$set": {'numbers': content["numbers"]}}, upsert=True)
 
 
@@ -55,3 +55,6 @@ def extract():
 
     elif response.status_code == 404:
         return {'message': 'Cannot access [' + API_BASE_URL + ']'}
+
+    else:
+        return response
