@@ -35,10 +35,10 @@ def extract():
     current_page = request.args.get('page')
 
     if current_page is None:
-        return {'message': 'Cannot find page. Please try to use ?page='}
+        return {'message': 'Cannot find page. Please try to use ?page=', 'stillHaveData': True}
 
     if not current_page.isdigit:
-        return {'message': 'Please try to use an integer value for page'}
+        return {'message': 'Please try to use an integer value for page', 'stillHaveData': True}
 
     response = requests.get("".join([API_BASE_URL, str(current_page)]))
 
@@ -48,13 +48,13 @@ def extract():
         if json_content["numbers"]:
             json_content.update({'page': current_page})
             persist(json_content)
-            return {'stillHaveData': True, 'currentPage': current_page}
+            return {'statusOk': True, 'stillHaveData': True, 'currentPage': current_page}
 
         else:
             return {'stillHaveData': False, 'lastPage': current_page}
 
     elif response.status_code == 404:
-        return {'message': 'Cannot access [' + API_BASE_URL + ']'}
+        return {'statusOk': False, 'stillHaveData': True, 'message': 'Cannot access [' + API_BASE_URL + ']'}
 
-    else:
-        return response
+    elif response.status_code == 500:
+        return {'statusOk': False, 'stillHaveData': True, 'currentPage': current_page}
