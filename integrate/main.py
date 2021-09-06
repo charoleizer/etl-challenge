@@ -69,9 +69,6 @@ while still_have_data:
     Extract().do_extract(list(range(current_page, current_page + pack_size)))
     still_have_data = not os.path.isfile('still_have_data.txt')
 
-    if current_page > 9000:
-        still_have_data = False
-
     current_page = current_page + pack_size
 
 # Caso houver falhas nas extrações, esse processo ficara em recurção até conseguir extrair todas as falhas

@@ -35,10 +35,10 @@ def extract():
     current_page = request.args.get('page')
 
     if current_page is None:
-        return {'message': 'Cannot find page. Please try to use ?page=', 'stillHaveData': True}
+        return {'statusOk': True, 'message': 'Cannot find page. Please try to use ?page=', 'stillHaveData': True}
 
     if not current_page.isdigit:
-        return {'message': 'Please try to use an integer value for page', 'stillHaveData': True}
+        return {'statusOk': True, 'message': 'Please try to use an integer value for page', 'stillHaveData': True}
 
     response = requests.get("".join([API_BASE_URL, str(current_page)]))
 
@@ -51,7 +51,7 @@ def extract():
             return {'statusOk': True, 'stillHaveData': True, 'currentPage': current_page}
 
         else:
-            return {'stillHaveData': False, 'lastPage': current_page}
+            return {'statusOk': True, 'stillHaveData': False, 'lastPage': current_page}
 
     elif response.status_code == 404:
         return {'statusOk': False, 'stillHaveData': True, 'message': 'Cannot access [' + API_BASE_URL + ']'}
